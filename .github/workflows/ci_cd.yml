@@ -1,4 +1,4 @@
-name: Flutter CI/CD - Build, Deploy & Release
+name: Flutter CI/CD - Build & Release
 
 on:
   push:
@@ -110,10 +110,10 @@ jobs:
           retention-days: 30
 
   # ──────────────────────────────────────────────
-  # Job 3: Build & Deploy Web (Firebase Hosting)
+  # Job 3: Build Web
   # ──────────────────────────────────────────────
-  build-and-deploy-web:
-    name: Build & Deploy Web
+  build-web:
+    name: Build Web
     runs-on: ubuntu-latest
     needs: analyze-and-test
     steps:
@@ -140,22 +140,13 @@ jobs:
           path: build/web
           retention-days: 30
 
-      - name: Deploy to Firebase Hosting
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: aitesting-b7e49
-          channelId: live
-
   # ──────────────────────────────────────────────
   # Job 4: Create GitHub Release
   # ──────────────────────────────────────────────
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-android, build-and-deploy-web]
+    needs: [build-android, build-web]
     permissions:
       contents: write
     steps:
