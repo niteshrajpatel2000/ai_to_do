@@ -111,43 +111,12 @@ jobs:
           retention-days: 30
 
   # ──────────────────────────────────────────────
-  # Job 3: Build Web
-  # ──────────────────────────────────────────────
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-    needs: analyze-and-test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build Web (Release)
-        run: flutter build web --release --web-renderer html
-
-      - name: Upload Web build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: build/web
-          retention-days: 30
-
-  # ──────────────────────────────────────────────
-  # Job 4: Create GitHub Release
+  # Job 3: Create GitHub Release
   # ──────────────────────────────────────────────
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-android, build-web]
+    needs: build-android
     permissions:
       contents: write
     steps:
@@ -173,26 +142,13 @@ jobs:
           name: android-aab
           path: release-artifacts/
 
-      - name: Download Web build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: release-artifacts/web/
-
-      - name: Zip Web build
-        run: |
-          cd release-artifacts
-          zip -r web-build.zip web/
-
       - name: Rename artifacts
         run: |
           cd release-artifacts
           mv app-release.apk ai-todo-app-${{ steps.version.outputs.tag }}.apk
           mv app-release.aab ai-todo-app-${{ steps.version.outputs.tag }}.aab
-          mv web-build.zip ai-todo-web-${{ steps.version.outputs.tag }}.zip
 
       - name: Generate release notes
-        id: notes
         run: |
           echo "## What's Changed" > release_notes.md
           echo "" >> release_notes.md
@@ -202,7 +158,6 @@ jobs:
           echo "### Artifacts" >> release_notes.md
           echo "- **Android APK** - Direct install on Android devices" >> release_notes.md
           echo "- **Android AAB** - For Google Play Store upload" >> release_notes.md
-          echo "- **Web Build** - Static web build (zip)" >> release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -215,4 +170,3 @@ jobs:
           files: |
             release-artifacts/ai-todo-app-${{ steps.version.outputs.tag }}.apk
             release-artifacts/ai-todo-app-${{ steps.version.outputs.tag }}.aab
-            release-artifacts/ai-todo-web-${{ steps.version.outputs.tag }}.zip
