@@ -1,30 +1,60 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:ai_test_project/main.dart';
+import 'package:ai_test_project/data/models/todo_model.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('TodoModel', () {
+    test('should create a TodoModel with required fields', () {
+      final todo = TodoModel(title: 'Test Todo');
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(todo.title, 'Test Todo');
+      expect(todo.description, '');
+      expect(todo.priority, 'medium');
+      expect(todo.isCompleted, false);
+      expect(todo.dueDate, isNull);
+      expect(todo.id, isNull);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('should create a TodoModel with all fields', () {
+      final dueDate = DateTime(2026, 4, 1);
+      final todo = TodoModel(
+        id: '123',
+        title: 'Full Todo',
+        description: 'A test description',
+        priority: 'high',
+        isCompleted: true,
+        dueDate: dueDate,
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(todo.id, '123');
+      expect(todo.title, 'Full Todo');
+      expect(todo.description, 'A test description');
+      expect(todo.priority, 'high');
+      expect(todo.isCompleted, true);
+      expect(todo.dueDate, dueDate);
+    });
+
+    test('should convert to map correctly', () {
+      final todo = TodoModel(
+        title: 'Map Test',
+        description: 'Testing toMap',
+        priority: 'low',
+      );
+
+      final map = todo.toMap();
+
+      expect(map['title'], 'Map Test');
+      expect(map['description'], 'Testing toMap');
+      expect(map['priority'], 'low');
+      expect(map['isCompleted'], false);
+    });
+
+    test('copyWith should create a new instance with updated fields', () {
+      final todo = TodoModel(title: 'Original');
+      final updated = todo.copyWith(title: 'Updated', priority: 'high');
+
+      expect(updated.title, 'Updated');
+      expect(updated.priority, 'high');
+      expect(updated.description, '');
+    });
   });
 }
